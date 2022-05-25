@@ -10,11 +10,11 @@ type IStockDataAccess =
 
     /// Retrieve all bins currently stored in the Storage Machine.
     abstract RetrieveAllBins : unit -> List<Bin>
+    abstract StoreBin: Bin -> Result<unit, string>
 
 /// An overview of all bins currently stored in the Storage Machine.
-let binOverview (dataAccess : IStockDataAccess) : List<Bin> =
-    // Trivially
-    dataAccess.RetrieveAllBins ()
+let binOverview (dataAccess : IStockDataAccess) = dataAccess.RetrieveAllBins ()
+let binCreate (dataAccess : IStockDataAccess) = dataAccess.StoreBin
 
 /// An overview of actual stock currently stored in the Storage Machine. Actual stock is defined as all non-empty bins.
 let stockOverview (dataAccess : IStockDataAccess) : List<Bin> =

@@ -17,5 +17,9 @@ let stockPersistence = { new IStockDataAccess with
             }
         )
         |> Set.toList
-
+    
+    member this.StoreBin (bin: Bin): Result<unit, string> =
+        match SimulatedDatabase.storeBin bin with
+        | Ok msg -> Ok msg
+        | Error msg -> Error (msg.ToString())
 }

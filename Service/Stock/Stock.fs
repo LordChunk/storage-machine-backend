@@ -20,7 +20,7 @@ let binOverview (next: HttpFunc) (ctx: HttpContext) =
 let stockOverview (next: HttpFunc) (ctx: HttpContext) =
     task {
         let dataAccess = ctx.GetService<IStockDataAccess> ()
-        let bins = Stock.stockOverview dataAccess
+        let bins = stockOverview dataAccess
         return! ThothSerializer.RespondJsonSeq bins Serialization.encoderBin next ctx 
     }
 
@@ -31,10 +31,25 @@ let productsInStock (next: HttpFunc) (ctx: HttpContext) =
         return! ThothSerializer.RespondJson productsOverview Serialization.encoderProductsOverview next ctx 
     }
 
+/// Create a new bin
+let binCreate (next: HttpFunc) (ctx:HttpContext) =
+    task {
+        let! inputBinIdentifier = ThothSerializer.ReadBody ctx Serialization.decodeBin
+        match inputBinIdentifier with
+        | Error _ ->
+            return! RequestErrors.badRequest (text "Invalid bin identifier") earlyReturn ctx
+        | Ok bin ->
+            let dataAccess = ctx.GetService<IStockDataAccess> ()
+            match binCreate dataAccess bin with
+            | Ok _ -> return! ThothSerializer.RespondJson bin Serialization.encoderBin next ctx
+            | Error msg -> return! RequestErrors.badRequest (text msg) earlyReturn ctx
+    }
+
 /// Defines URLs for functionality of the Stock component and dispatches HTTP requests to those URLs.
 let handlers : HttpHandler =
     choose [
         GET >=> route "/bins" >=> binOverview
+        POST >=> route "/bins" >=> binCreate
         GET >=> route "/stock" >=> stockOverview
         GET >=> route "/stock/products" >=> productsInStock
     ]

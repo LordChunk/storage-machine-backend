@@ -1,6 +1,7 @@
 ﻿/// Serialization and deserialization for types/values of the Stock component.
 module StorageMachine.Stock.Serialization
 
+open StorageMachine.Stock.Bin
 open Thoth.Json.Net
 open FsToolkit.ErrorHandling
 open StorageMachine
@@ -22,8 +23,7 @@ let decoderBinIdentifier : Decoder<BinIdentifier> =
         match BinIdentifier.make s with
         | Ok binIdentifier -> Decode.succeed binIdentifier
         | Error validationMessage -> Decode.fail validationMessage
-    )
-// EXERCISE: Is this decoder in the right place (in the architecture) here?
+    )    
     
 /// JSON deserialization of a part number.
 let decoderPartNumber : Decoder<PartNumber> =
@@ -32,6 +32,15 @@ let decoderPartNumber : Decoder<PartNumber> =
         match PartNumber.make s with
         | Ok partNumber -> Decode.succeed partNumber
         | Error validationMessage -> Decode.fail validationMessage
+    )
+    
+/// JSON deserialization of a bin
+let decodeBin : Decoder<Bin> =
+    Decode.object (fun get ->
+        {
+            Identifier = get.Required.Field "Identifier" decoderBinIdentifier
+            Content = get.Optional.Field "Content" decoderPartNumber
+        }
     )
 
 /// JSON serialization of a stock product.
